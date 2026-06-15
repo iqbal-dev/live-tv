@@ -1,0 +1,69 @@
+'use client';
+import { useState, useMemo, useEffect } from 'react';
+import { Sidebar } from '@/components/player/Sidebar';
+import { VideoPlayer } from '@/components/player/VideoPlayer';
+import { EPGPanel } from '@/components/player/EPGPanel';
+import { M3UImportModal } from '@/components/player/M3UImportModal';
+import { useFavorites } from '@/hooks/useFavorites';
+import { DEMO_CHANNELS } from '@/lib/demoData';
+import type { Channel, ViewMode } from '@/types';
+
+export default function PlayerPage() {
+  const [channels, setChannels] = useState<Channel[]>(DEMO_CHANNELS);
+
+  useEffect(() => {
+    fetch('/api/channels/public')
+      .then((res) => res.json())
+      .then((data: Channel[]) => {
+        if (data.length > 0) setChannels(data);
+      })
+      .catch(() => {});
+  }, []);
+
+  const [activeChannel, setActiveChannel] = useState<Channel | null>(null);
+  const [search, setSearch] = useState('');
+  const [category, setCategory] = useState('All');
+  const [showFavOnly, setShowFavOnly] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>('list');
+  const [showImport, setShowImport] = useState(false);
+  const { favorites, toggle } = useFavorites();
+
+  const allCategories = useMemo(
+    () => ['All', ...Array.from(new Set(channels.map((c) => c.category))).sort()],
+    [channels]
+  );
+
+  const filtered = useMemo(() => channels.filter((ch) => {
+    const id = ch.id || ch._id || '';
+    return ch.name.toLowerCase().includes(search.toLowerCase()) &&
+      (category === 'All' || ch.category === category) &&
+      (!showFavOnly || favorites.has(id));
+  }), [channels, search, category, showFavOnly, favorites]);
+
+  const handleImport = (imported: Channel[]) => {
+    setChannels((prev) => {
+      const ids = new Set(prev.map((c) => c.id || c._id));
+      return [...prev, ...imported.filter((c) => !ids.has(c.id || c._id))];
+    });
+  };
+
+  return (
+    <div className="app">
+      <Sidebar
+        channels={filtered} activeChannel={activeChannel} onSelect={setActiveChannel}
+        favorites={favorites} onToggleFav={toggle}
+        search={search} onSearch={setSearch}
+        category={category} onCategory={setCategory}
+        showFavOnly={showFavOnly} onToggleFavFilter={() => setShowFavOnly((v) => !v)}
+        viewMode={viewMode} onViewMode={setViewMode}
+        onImportClick={() => setShowImport(true)}
+        allCategories={allCategories}
+      />
+      <main className="main">
+        <VideoPlayer channel={activeChannel} />
+        <EPGPanel channel={activeChannel} />
+      </main>
+      {showImport && <M3UImportModal onImport={handleImport} onClose={() => setShowImport(false)} />}
+    </div>
+  );
+}
