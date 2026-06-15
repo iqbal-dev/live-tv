@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import dns from 'dns';
+import { Agent, fetch as undiciFetch } from 'undici';
 
 export const dynamic = 'force-dynamic';
 
@@ -7,6 +9,22 @@ const CORS_HEADERS = {
   'Access-Control-Allow-Headers': '*',
   'Cache-Control': 'no-cache',
 };
+
+// Some upstream hostnames aren't resolvable via the platform's default resolver
+// (e.g. geo-restricted CDN DNS). Fall back to public resolvers for lookups.
+const publicResolver = new dns.promises.Resolver();
+publicResolver.setServers(['8.8.8.8', '1.1.1.1']);
+
+function lookup(hostname: string, options: dns.LookupOptions, callback: (err: NodeJS.ErrnoException | null, address: string | dns.LookupAddress[], family?: number) => void) {
+  dns.lookup(hostname, options, (err, address, family) => {
+    if (!err) return callback(null, address, family);
+    publicResolver.resolve4(hostname).then((addresses) => {
+      callback(null, addresses[0], 4);
+    }).catch(() => callback(err, address, family));
+  });
+}
+
+const agent = new Agent({ connect: { lookup } });
 
 export async function OPTIONS() {
   return new NextResponse(null, { headers: CORS_HEADERS });
@@ -25,10 +43,10 @@ export async function GET(req: NextRequest) {
 
   let upstream: Response;
   try {
-    upstream = await fetch(targetUrl.toString(), {
+    upstream = (await undiciFetch(targetUrl.toString(), {
       headers: { 'User-Agent': 'Mozilla/5.0' },
-      redirect: 'follow',
-    });
+      dispatcher: agent,
+    })) as unknown as Response;
   } catch {
     return NextResponse.json({ error: 'Upstream fetch failed' }, { status: 502 });
   }
