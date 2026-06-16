@@ -21,6 +21,23 @@ export function usePlayer(
     onLoading?.(true);
 
     const proxiedUrl = `/api/stream-proxy?url=${encodeURIComponent(url)}`;
+    let resolved = false;
+
+    const timeoutId = setTimeout(() => {
+      if (!resolved) {
+        resolved = true;
+        destroy();
+        onLoading?.(false);
+        onError?.('Stream timed out', true);
+      }
+    }, 10000);
+
+    const resolve = () => {
+      if (!resolved) {
+        resolved = true;
+        clearTimeout(timeoutId);
+      }
+    };
 
     (async () => {
       const Hls = (await import('hls.js')).default;
@@ -30,6 +47,7 @@ export function usePlayer(
         hls.loadSource(proxiedUrl);
         hls.attachMedia(video);
         hls.on(Hls.Events.MANIFEST_PARSED, (_, data) => {
+          resolve();
           onLoading?.(false);
           if (!data.levels?.length) {
             onError?.('Stream is empty or offline', true);
@@ -39,22 +57,24 @@ export function usePlayer(
         });
         hls.on(Hls.Events.ERROR, (_, data) => {
           if (data.fatal) {
+            resolve();
             onLoading?.(false);
             onError?.(`Stream error: ${data.type}`, data.type === Hls.ErrorTypes.NETWORK_ERROR);
           }
         });
       } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
         video.src = proxiedUrl;
-        video.addEventListener('loadedmetadata', () => onLoading?.(false), { once: true });
-        video.addEventListener('error', () => { onLoading?.(false); onError?.('Stream error: networkError', true); }, { once: true });
+        video.addEventListener('loadedmetadata', () => { resolve(); onLoading?.(false); }, { once: true });
+        video.addEventListener('error', () => { resolve(); onLoading?.(false); onError?.('Stream error: networkError', true); }, { once: true });
         video.play().catch(() => {});
       } else {
+        resolve();
         onLoading?.(false);
         onError?.('HLS not supported in this browser', false);
       }
     })();
 
-    return destroy;
+    return () => { clearTimeout(timeoutId); destroy(); };
   }, [url, destroy, onError, onLoading]);
 
   return videoRef;

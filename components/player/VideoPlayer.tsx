@@ -17,16 +17,12 @@ export function VideoPlayer({ channel, onNext }: Props) {
   const [volume, setVolume] = useState(1);
   const [showControls, setShowControls] = useState(true);
   const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const autoSwitchRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const handleError = useCallback((msg: string, autoSwitch?: boolean) => {
-    setError(msg);
-    clearTimeout(autoSwitchRef.current);
     if (autoSwitch && onNext) {
-      autoSwitchRef.current = setTimeout(() => {
-        setError(null);
-        onNext();
-      }, 1500);
+      onNext();
+    } else {
+      setError(msg);
     }
   }, [onNext]);
 
@@ -97,7 +93,6 @@ export function VideoPlayer({ channel, onNext }: Props) {
         <div className="player-error">
           <AlertCircle size={36} />
           <p>{error}</p>
-          {onNext && <span className="player-error-sub">Switching to next channel…</span>}
         </div>
       )}
 
