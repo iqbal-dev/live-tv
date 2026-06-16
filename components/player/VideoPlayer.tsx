@@ -12,6 +12,7 @@ interface Props {
 export function VideoPlayer({ channel, onNext }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [buffering, setBuffering] = useState(false);
   const [muted, setMuted] = useState(false);
   const [paused, setPaused] = useState(false);
   const [volume, setVolume] = useState(1);
@@ -28,7 +29,7 @@ export function VideoPlayer({ channel, onNext }: Props) {
 
   const handleLoading = useCallback((l: boolean) => {
     setLoading(l);
-    if (l) setError(null);
+    if (l) { setError(null); setBuffering(false); }
   }, []);
 
   const videoRef = usePlayer(channel?.url ?? null, handleError, handleLoading);
@@ -80,12 +81,34 @@ export function VideoPlayer({ channel, onNext }: Props) {
       onMouseLeave={() => setShowControls(false)}
       onTouchStart={showCtrl}
     >
-      <video ref={videoRef} className="video-el" playsInline />
+      <video
+        ref={videoRef}
+        className="video-el"
+        playsInline
+        onWaiting={() => { if (!loading) setBuffering(true); }}
+        onPlaying={() => {
+          if (buffering) {
+            const v = videoRef.current;
+            if (v && v.seekable.length > 0) {
+              const liveEdge = v.seekable.end(v.seekable.length - 1);
+              if (liveEdge - v.currentTime > 2) v.currentTime = liveEdge;
+            }
+          }
+          setBuffering(false);
+        }}
+        onCanPlay={() => setBuffering(false)}
+      />
 
       {loading && (
         <div className="player-loader">
           <Loader2 size={40} className="player-spinner" />
           <p className="player-loader-name">{channel.name}</p>
+        </div>
+      )}
+
+      {buffering && !loading && !error && (
+        <div className="player-buffering">
+          <Loader2 size={36} className="player-spinner" />
         </div>
       )}
 
