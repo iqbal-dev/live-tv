@@ -767,6 +767,111 @@ body {
 .btn-primary:hover { opacity: 0.9; }
 .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
 
+/* ─── Player loader ───────────────────────────────── */
+.player-loader {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  background: rgba(0,0,0,0.75);
+  z-index: 5;
+}
+.player-spinner {
+  color: var(--accent);
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.player-loader-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  max-width: 240px;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.player-error-sub {
+  font-size: 12px;
+  color: var(--accent);
+  margin-top: 2px;
+}
+
+/* ─── Mobile responsive ───────────────────────────── */
+@media (max-width: 767px) {
+  :root { --sidebar-w: 100%; }
+
+  body { overflow: hidden; }
+
+  .app {
+    flex-direction: column;
+    height: 100dvh;
+  }
+
+  /* Main (video + epg) gets a fixed height on mobile */
+  .main {
+    flex: none;
+    height: 240px;
+  }
+
+  .video-player { border-radius: 0; }
+
+  /* EPG hidden on mobile — too cramped */
+  .epg-panel { display: none; }
+
+  /* Sidebar becomes the bottom scrollable panel */
+  .sidebar {
+    flex: 1;
+    width: 100%;
+    border-right: none;
+    border-top: 1px solid var(--border);
+    min-height: 0;
+  }
+
+  .sidebar-header { padding: 10px 12px; }
+  .sidebar-logo-text { font-size: 13px; }
+
+  .search-wrap { margin: 8px 10px 0; }
+
+  .filters-row { padding: 6px 10px 0; }
+
+  .category-pills { padding: 6px 10px 0; gap: 5px; }
+
+  .channel-count { padding: 5px 12px 2px; }
+
+  .channel-list { padding: 4px 8px 8px; }
+
+  /* List items: slightly more compact on mobile */
+  .channel-list-item { padding: 6px 8px; }
+  .channel-list-logo { width: 32px; height: 32px; }
+  .channel-list-name { font-size: 12px; }
+  .channel-list-cat { font-size: 10px; }
+
+  /* Grid: 3 columns on mobile */
+  .channel-list.grid { grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+
+  /* Player controls: bigger tap targets */
+  .ctrl-btn { padding: 6px; }
+  .volume-slider { width: 60px; }
+
+  /* Empty state smaller */
+  .player-empty-title { font-size: 13px; }
+  .player-empty-sub { font-size: 11px; }
+  .player-icon-wrap { width: 52px; height: 52px; margin-bottom: 12px; }
+
+  /* Modal: full width bottom sheet feel */
+  .modal-backdrop { align-items: flex-end; padding: 0; }
+  .modal { border-radius: 12px 12px 0 0; max-width: 100%; }
+}
+
+@media (max-width: 360px) {
+  .main { height: 200px; }
+  .channel-list.grid { grid-template-columns: 1fr 1fr; }
+}
+
 /* ─── Scrollbar globals ───────────────────────────── */
 * {
   scrollbar-width: thin;

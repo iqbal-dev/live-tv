@@ -47,6 +47,13 @@ export default function PlayerPage() {
     });
   };
 
+  const handleNext = () => {
+    if (!filtered.length) return;
+    const idx = filtered.findIndex((ch) => (ch.id || ch._id) === (activeChannel?.id || activeChannel?._id));
+    const next = filtered[(idx + 1) % filtered.length];
+    setActiveChannel(next);
+  };
+
   return (
     <div className="app">
       <Sidebar
@@ -60,7 +67,7 @@ export default function PlayerPage() {
         allCategories={allCategories}
       />
       <main className="main">
-        <VideoPlayer channel={activeChannel} />
+        <VideoPlayer channel={activeChannel} onNext={handleNext} />
         <EPGPanel channel={activeChannel} />
       </main>
       {showImport && <M3UImportModal onImport={handleImport} onClose={() => setShowImport(false)} />}

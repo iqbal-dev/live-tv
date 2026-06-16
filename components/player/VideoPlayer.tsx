@@ -1,20 +1,43 @@
 'use client';
-import { useState, useRef } from 'react';
-import { Volume2, VolumeX, Maximize, Play, Pause, AlertCircle } from 'lucide-react';
+import { useState, useRef, useCallback } from 'react';
+import { Volume2, VolumeX, Maximize, Play, Pause, AlertCircle, Loader2 } from 'lucide-react';
 import { usePlayer } from '@/hooks/usePlayer';
 import type { Channel } from '@/types';
 
-export function VideoPlayer({ channel }: { channel: Channel | null }) {
+interface Props {
+  channel: Channel | null;
+  onNext?: () => void;
+}
+
+export function VideoPlayer({ channel, onNext }: Props) {
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const [muted, setMuted] = useState(false);
   const [paused, setPaused] = useState(false);
   const [volume, setVolume] = useState(1);
   const [showControls, setShowControls] = useState(true);
   const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const autoSwitchRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
-  const videoRef = usePlayer(channel?.url ?? null, setError);
+  const handleError = useCallback((msg: string, autoSwitch?: boolean) => {
+    setError(msg);
+    clearTimeout(autoSwitchRef.current);
+    if (autoSwitch && onNext) {
+      autoSwitchRef.current = setTimeout(() => {
+        setError(null);
+        onNext();
+      }, 1500);
+    }
+  }, [onNext]);
 
-  const handleMouseMove = () => {
+  const handleLoading = useCallback((l: boolean) => {
+    setLoading(l);
+    if (l) setError(null);
+  }, []);
+
+  const videoRef = usePlayer(channel?.url ?? null, handleError, handleLoading);
+
+  const showCtrl = () => {
     setShowControls(true);
     clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => setShowControls(false), 3000);
@@ -55,37 +78,58 @@ export function VideoPlayer({ channel }: { channel: Channel | null }) {
   );
 
   return (
-    <div className="video-player" onMouseMove={handleMouseMove} onMouseLeave={() => setShowControls(false)}>
-      {error ? (
-        <div className="player-error">
-          <AlertCircle size={40} /><p>{error}</p>
-          <span>Try another channel or check your connection</span>
+    <div
+      className="video-player"
+      onMouseMove={showCtrl}
+      onMouseLeave={() => setShowControls(false)}
+      onTouchStart={showCtrl}
+    >
+      <video ref={videoRef} className="video-el" playsInline />
+
+      {loading && (
+        <div className="player-loader">
+          <Loader2 size={40} className="player-spinner" />
+          <p className="player-loader-name">{channel.name}</p>
         </div>
-      ) : (
-        <>
-          <video ref={videoRef} className="video-el" playsInline />
-          <div className={`player-overlay ${showControls ? 'visible' : ''}`}>
-            <div className="player-top">
-              <div className="player-channel-info">
-                {channel.logo && <img src={channel.logo} alt={channel.name} className="player-channel-logo" onError={(e) => (e.currentTarget.style.display = 'none')} />}
-                <div>
-                  <div className="player-channel-name">{channel.name}</div>
-                  <div className="player-live-badge"><span className="live-dot" />LIVE</div>
-                </div>
+      )}
+
+      {error && (
+        <div className="player-error">
+          <AlertCircle size={36} />
+          <p>{error}</p>
+          {onNext && <span className="player-error-sub">Switching to next channel…</span>}
+        </div>
+      )}
+
+      {!loading && !error && (
+        <div className={`player-overlay ${showControls ? 'visible' : ''}`}>
+          <div className="player-top">
+            <div className="player-channel-info">
+              {channel.logo && (
+                <img
+                  src={channel.logo}
+                  alt={channel.name}
+                  className="player-channel-logo"
+                  onError={(e) => (e.currentTarget.style.display = 'none')}
+                />
+              )}
+              <div>
+                <div className="player-channel-name">{channel.name}</div>
+                <div className="player-live-badge"><span className="live-dot" />LIVE</div>
               </div>
             </div>
-            <div className="player-center" onClick={togglePlay}>
-              {paused && <div className="play-btn-center"><Play size={40} fill="white" /></div>}
-            </div>
-            <div className="player-controls">
-              <button className="ctrl-btn" onClick={togglePlay}>{paused ? <Play size={18} /> : <Pause size={18} />}</button>
-              <button className="ctrl-btn" onClick={toggleMute}>{muted ? <VolumeX size={18} /> : <Volume2 size={18} />}</button>
-              <input type="range" min={0} max={1} step={0.05} value={muted ? 0 : volume} onChange={handleVolume} className="volume-slider" />
-              <div className="ctrl-spacer" />
-              <button className="ctrl-btn" onClick={() => videoRef.current?.requestFullscreen()}><Maximize size={18} /></button>
-            </div>
           </div>
-        </>
+          <div className="player-center" onClick={togglePlay}>
+            {paused && <div className="play-btn-center"><Play size={40} fill="white" /></div>}
+          </div>
+          <div className="player-controls">
+            <button className="ctrl-btn" onClick={togglePlay}>{paused ? <Play size={18} /> : <Pause size={18} />}</button>
+            <button className="ctrl-btn" onClick={toggleMute}>{muted ? <VolumeX size={18} /> : <Volume2 size={18} />}</button>
+            <input type="range" min={0} max={1} step={0.05} value={muted ? 0 : volume} onChange={handleVolume} className="volume-slider" />
+            <div className="ctrl-spacer" />
+            <button className="ctrl-btn" onClick={() => videoRef.current?.requestFullscreen()}><Maximize size={18} /></button>
+          </div>
+        </div>
       )}
     </div>
   );
