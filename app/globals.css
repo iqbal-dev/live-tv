@@ -1,5 +1,6 @@
 /* ─── Design tokens ───────────────────────────────── */
-:root {
+:root,
+[data-theme="dark"] {
   --bg: #0a0b10;
   --bg-2: #0f1018;
   --bg-3: #14151f;
@@ -14,6 +15,23 @@
   --text-3: #555566;
   --radius: 10px;
   --font: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  --shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="light"] {
+  --bg: #f3f4f8;
+  --bg-2: #ffffff;
+  --bg-3: #eaeaef;
+  --bg-4: #dfdfe7;
+  --bg-5: #d3d3dd;
+  --border: rgba(0, 0, 0, 0.08);
+  --border-2: rgba(0, 0, 0, 0.15);
+  --accent: #e50914;
+  --accent-dim: rgba(229, 9, 20, 0.1);
+  --text: #0d0e14;
+  --text-2: #4a4a5a;
+  --text-3: #888898;
+  --shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -106,6 +124,20 @@ body {
   font-family: inherit;
 }
 .sv-import-btn:hover { color: var(--text); border-color: var(--accent); }
+
+.sv-theme-btn {
+  background: var(--bg-4);
+  border: 1px solid var(--border-2);
+  color: var(--text-2);
+  border-radius: 8px;
+  padding: 8px 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.sv-theme-btn:hover { color: var(--accent); border-color: var(--accent); }
 
 /* ─── Filters ─────────────────────────────────────── */
 .sv-filters {
@@ -226,7 +258,7 @@ body {
 .sv-card:hover {
   border-color: var(--border-2);
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--shadow);
 }
 .sv-card.sv-card-active {
   border-color: var(--accent);

@@ -1,9 +1,10 @@
 'use client';
 import { useState, useMemo, useEffect, useCallback } from 'react';
-import { Search, Tv } from 'lucide-react';
+import { Search, Tv, Sun, Moon } from 'lucide-react';
 import { ChannelCard } from '@/components/player/ChannelCard';
 import { PlayerModal } from '@/components/player/PlayerModal';
 import { useFavorites } from '@/hooks/useFavorites';
+import { useTheme } from '@/hooks/useTheme';
 import type { Channel } from '@/types';
 
 export default function PlayerPage() {
@@ -14,6 +15,7 @@ export default function PlayerPage() {
   const [category, setCategory] = useState('All');
   const [showFavOnly, setShowFavOnly] = useState(false);
   const { favorites, toggle } = useFavorites();
+  const { theme, toggle: toggleTheme } = useTheme();
 
   useEffect(() => {
     fetch('/api/channels/public')
@@ -72,6 +74,10 @@ export default function PlayerPage() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
+
+        <button className="sv-theme-btn" onClick={toggleTheme} title="Toggle theme">
+          {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+        </button>
       </header>
 
       <div className="sv-filters">
