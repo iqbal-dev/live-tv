@@ -1,14 +1,18 @@
 import jwt from 'jsonwebtoken';
 import { NextRequest } from 'next/server';
 
-const SECRET = process.env.JWT_SECRET!;
+function secret() {
+  const s = process.env.JWT_SECRET?.trim();
+  if (!s) throw new Error('JWT_SECRET env var is not set');
+  return s;
+}
 
 export function signToken(payload: object) {
-  return jwt.sign(payload, SECRET, { expiresIn: '24h' });
+  return jwt.sign(payload, secret(), { expiresIn: '24h' });
 }
 
 export function verifyToken(token: string) {
-  return jwt.verify(token, SECRET) as { username: string };
+  return jwt.verify(token, secret()) as { username: string };
 }
 
 export function getTokenFromRequest(req: NextRequest) {
