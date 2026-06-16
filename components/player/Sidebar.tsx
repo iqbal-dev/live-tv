@@ -19,9 +19,10 @@ interface Props {
   onViewMode: (v: ViewMode) => void;
   onImportClick: () => void;
   allCategories: string[];
+  loading?: boolean;
 }
 
-export function Sidebar({ channels, activeChannel, onSelect, favorites, onToggleFav, search, onSearch, category, onCategory, showFavOnly, onToggleFavFilter, viewMode, onViewMode, onImportClick, allCategories }: Props) {
+export function Sidebar({ channels, activeChannel, onSelect, favorites, onToggleFav, search, onSearch, category, onCategory, showFavOnly, onToggleFavFilter, viewMode, onViewMode, onImportClick, allCategories, loading }: Props) {
   return (
     <aside className="sidebar">
       <div className="sidebar-header">
@@ -53,24 +54,38 @@ export function Sidebar({ channels, activeChannel, onSelect, favorites, onToggle
           <button key={cat} className={`cat-pill ${category === cat ? 'active' : ''}`} onClick={() => onCategory(cat)}>{cat}</button>
         ))}
       </div>
-      <div className="channel-count">{channels.length} channel{channels.length !== 1 ? 's' : ''}</div>
+      <div className="channel-count">
+        {loading ? 'Loading…' : `${channels.length} channel${channels.length !== 1 ? 's' : ''}`}
+      </div>
       <div className={`channel-list ${viewMode === 'grid' ? 'grid' : 'list-view'}`}>
-        {channels.length === 0
-          ? <div className="channels-empty">No channels found</div>
-          : channels.map((ch) => {
-              const id = ch.id || ch._id || '';
-              return (
-                <ChannelCard
-                  key={id}
-                  channel={ch}
-                  isActive={(activeChannel?.id || activeChannel?._id) === id}
-                  isFavorite={favorites.has(id)}
-                  onSelect={() => onSelect(ch)}
-                  onToggleFav={(e) => { e.stopPropagation(); onToggleFav(id); }}
-                  viewMode={viewMode}
-                />
-              );
-            })}
+        {loading
+          ? Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className={`channel-skeleton ${viewMode === 'grid' ? 'skeleton-grid' : 'skeleton-list'}`}>
+                <div className="skeleton-logo" />
+                {viewMode === 'list' && (
+                  <div className="skeleton-info">
+                    <div className="skeleton-line skeleton-name" />
+                    <div className="skeleton-line skeleton-cat" />
+                  </div>
+                )}
+              </div>
+            ))
+          : channels.length === 0
+            ? <div className="channels-empty">No channels found</div>
+            : channels.map((ch) => {
+                const id = ch.id || ch._id || '';
+                return (
+                  <ChannelCard
+                    key={id}
+                    channel={ch}
+                    isActive={(activeChannel?.id || activeChannel?._id) === id}
+                    isFavorite={favorites.has(id)}
+                    onSelect={() => onSelect(ch)}
+                    onToggleFav={(e) => { e.stopPropagation(); onToggleFav(id); }}
+                    viewMode={viewMode}
+                  />
+                );
+              })}
       </div>
     </aside>
   );

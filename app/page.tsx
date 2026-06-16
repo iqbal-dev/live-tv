@@ -5,19 +5,20 @@ import { VideoPlayer } from '@/components/player/VideoPlayer';
 import { EPGPanel } from '@/components/player/EPGPanel';
 import { M3UImportModal } from '@/components/player/M3UImportModal';
 import { useFavorites } from '@/hooks/useFavorites';
-import { DEMO_CHANNELS } from '@/lib/demoData';
 import type { Channel, ViewMode } from '@/types';
 
 export default function PlayerPage() {
-  const [channels, setChannels] = useState<Channel[]>(DEMO_CHANNELS);
+  const [channels, setChannels] = useState<Channel[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch('/api/channels/public')
       .then((res) => res.json())
       .then((data: Channel[]) => {
-        if (data.length > 0) setChannels(data);
+        setChannels(data);
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
   const [activeChannel, setActiveChannel] = useState<Channel | null>(null);
@@ -65,6 +66,7 @@ export default function PlayerPage() {
         viewMode={viewMode} onViewMode={setViewMode}
         onImportClick={() => setShowImport(true)}
         allCategories={allCategories}
+        loading={loading}
       />
       <main className="main">
         <VideoPlayer channel={activeChannel} onNext={handleNext} />

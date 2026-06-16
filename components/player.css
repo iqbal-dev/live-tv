@@ -219,6 +219,48 @@ body {
   padding: 32px 16px;
 }
 
+/* ─── Channel skeleton loader ─────────────────────── */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.skeleton-logo,
+.skeleton-line {
+  background: linear-gradient(90deg, var(--bg-3) 25%, var(--bg-4) 50%, var(--bg-3) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: 4px;
+}
+.channel-skeleton.skeleton-list {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  border-radius: 7px;
+}
+.channel-skeleton.skeleton-list .skeleton-logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+.skeleton-info { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+.skeleton-line { height: 10px; }
+.skeleton-name { width: 70%; }
+.skeleton-cat { width: 40%; }
+
+.channel-skeleton.skeleton-grid {
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--bg-3);
+}
+.channel-skeleton.skeleton-grid .skeleton-logo {
+  width: 100%;
+  padding-top: 56.25%;
+  border-radius: 0;
+  height: 0;
+}
+
 /* ─── Channel card (grid) ─────────────────────────── */
 .channel-card {
   position: relative;
