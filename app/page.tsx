@@ -1,9 +1,8 @@
 'use client';
 import { useState, useMemo, useEffect, useCallback } from 'react';
-import { Search, Upload, Tv } from 'lucide-react';
+import { Search, Tv } from 'lucide-react';
 import { ChannelCard } from '@/components/player/ChannelCard';
 import { PlayerModal } from '@/components/player/PlayerModal';
-import { M3UImportModal } from '@/components/player/M3UImportModal';
 import { useFavorites } from '@/hooks/useFavorites';
 import type { Channel } from '@/types';
 
@@ -14,7 +13,6 @@ export default function PlayerPage() {
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('All');
   const [showFavOnly, setShowFavOnly] = useState(false);
-  const [showImport, setShowImport] = useState(false);
   const { favorites, toggle } = useFavorites();
 
   useEffect(() => {
@@ -47,13 +45,6 @@ export default function PlayerPage() {
     setActiveChannel(filtered[(idx + 1) % filtered.length]);
   }, [filtered, activeChannel]);
 
-  const handleImport = (imported: Channel[]) => {
-    setChannels((prev) => {
-      const ids = new Set(prev.map((c) => c.id || c._id));
-      return [...prev, ...imported.filter((c) => !ids.has(c.id || c._id))];
-    });
-  };
-
   const favCount = useMemo(
     () => channels.filter((ch) => favorites.has(ch.id || ch._id || '')).length,
     [channels, favorites]
@@ -81,10 +72,6 @@ export default function PlayerPage() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-
-        <button className="sv-import-btn" onClick={() => setShowImport(true)}>
-          <Upload size={14} /> Import M3U
-        </button>
       </header>
 
       <div className="sv-filters">
@@ -167,10 +154,6 @@ export default function PlayerPage() {
           onClose={() => setActiveChannel(null)}
           onNext={handleNext}
         />
-      )}
-
-      {showImport && (
-        <M3UImportModal onImport={handleImport} onClose={() => setShowImport(false)} />
       )}
     </div>
   );
