@@ -423,11 +423,9 @@ body {
 }
 .player-buffering {
   position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0, 0, 0, 0.35);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   z-index: 9;
   pointer-events: none;
 }
