@@ -82,7 +82,6 @@ export function Sidebar({ channels, activeChannel, onSelect, favorites, onToggle
                     isFavorite={favorites.has(id)}
                     onSelect={() => onSelect(ch)}
                     onToggleFav={(e) => { e.stopPropagation(); onToggleFav(id); }}
-                    viewMode={viewMode}
                   />
                 );
               })}
